@@ -14,7 +14,7 @@ CXX_VERSION		    := 26
 
 
 BUILD_DIR           := build
-SOURCE_DIR         := source
+SOURCE_DIR          := source
 INCLUDE_DIR         := include
 EMBED_DIR           := $(BUILD_DIR)
 

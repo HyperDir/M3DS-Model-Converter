@@ -10,6 +10,7 @@
 #include <stdfloat>
 #include <string_view>
 #include <vector>
+#include <inplace_vector>
 
 #include <BinaryFile.hpp>
 
@@ -291,41 +292,37 @@ struct Mod3DS {
             std::vector<ReducedSurface> boneReducedSurfaces {};
 
             for (const auto& [material, triangles] : mSurfaces) {
-                std::array<std::uint16_t, maxBonesPerSurface> boneIndices {};
-                std::uint16_t boneIndexCount {};
+                std::inplace_vector<std::uint16_t, maxBonesPerSurface> boneIndices {};
 
                 std::vector<bool> usedTriangles(triangles.size(), false);
 
                 std::vector<std::uint8_t> boneMappings {};
 
                 const auto testTri = [&](const Triangle& tri) -> bool {
-                    std::array<std::uint16_t, 12> required {};
-                    std::uint_fast8_t count {};
+                    std::inplace_vector<std::uint16_t, 12> required {};
 
                     for (const auto& v : tri) {
                         for (std::size_t i{}; i < 4; ++i) {
                             if (
                                 const auto bone = v.boneIndices[i];
                                 v.boneWeights[i] != 0 &&
-                                !std::ranges::contains(required.begin(), required.begin() + count, bone) &&
-                                !std::ranges::contains(boneIndices.begin(), boneIndices.begin() + boneIndexCount, bone)
+                                !std::ranges::contains(required, bone) &&
+                                !std::ranges::contains(boneIndices, bone)
                             ) {
-                                required[count++] = bone;
+                                required.emplace_back(bone);
                             }
                         }
                     }
 
-                    if (boneIndexCount + count > maxBonesPerSurface) {
+                    if (boneIndices.size() + required.size() > maxBonesPerSurface) {
                         return false;
                     }
 
-                    for (std::uint_fast8_t i{}; i < count; ++i) {
-                        const auto b = required[i];
-
-                        boneIndices[boneIndexCount++] = b;
-
+                    for (const std::uint16_t b : required) {
                         boneMappings.resize(std::max(boneMappings.size(), static_cast<std::size_t>(b) + 1));
-                        boneMappings[b] = static_cast<uint8_t>(boneIndexCount - 1);
+                        boneMappings[b] = static_cast<uint8_t>(boneIndices.size());
+
+                        boneIndices.emplace_back(b);
                     }
 
                     return true;
@@ -339,7 +336,7 @@ struct Mod3DS {
                     ReducedSurface& surface = boneReducedSurfaces.emplace_back();
                     surface.material = material;
 
-                    boneIndexCount = 0;
+                    boneIndices.clear();
                     boneMappings.clear();
 
                     for (std::size_t i{}; i < triangles.size(); ++i) {
@@ -364,7 +361,7 @@ struct Mod3DS {
                         }
                     }
 
-                    surface.boneIndices = boneIndices;
+                    std::ranges::copy(boneIndices, surface.boneIndices.begin());
                 }
             }
 
