@@ -126,7 +126,7 @@ Wavefront::Wavefront(std::filesystem::path p)
                 if (tmp >= 0) normalVertex = normals[tmp];
             }
 
-            if (face.size() < 3) throw std::invalid_argument(std::format("Face not found!"));
+            if (face.size() < 3) throw std::invalid_argument("Face not found!");
 
             for (size_t i{}; i<face.size() - 2; ++i) {
                 surfaces[currentSurface].triangles.emplace_back(Triangle {face[0], face[i + 1], face[i + 2]});

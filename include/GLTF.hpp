@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <filesystem>
-#include <fstream>
+#include <print>
 
 #include <array>
 
@@ -1520,8 +1520,14 @@ public:
                             weightsAccessor.count
                         };
 
-                        for (size_t i{}; i < buffer.size(); ++i)
-                            vertices[i].boneWeights = buffer[i];
+                        for (size_t i{}; i < buffer.size(); ++i) {
+                            const std::array<float, 4>& floatWeights = buffer[i];
+                            std::array<std::uint8_t, 4>& u8Weights = vertices[i].boneWeights;
+
+                            for (auto&& [floatWeight, u8Weight] : std::views::zip(floatWeights, u8Weights)) {
+                                u8Weight = static_cast<std::uint8_t>(floatWeight * static_cast<float>(std::numeric_limits<std::uint8_t>::max()));
+                            }
+                        }
                     }
                 }
 

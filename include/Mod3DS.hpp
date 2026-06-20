@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <filesystem>
 #include <flat_set>
-#include <iostream>
+#include <print>
 #include <optional>
 #include <stdfloat>
 #include <string_view>
@@ -171,7 +171,7 @@ struct Mod3DS {
         Vector2 texCoords {};
         Vector3 normal {};
         std::array<std::uint16_t, 4> boneIndices { 0, 0, 0, 0 };
-        std::array<float, 4> boneWeights { 0, 0, 0, 0 };
+        std::array<std::uint8_t, 4> boneWeights { 0, 0, 0, 0 };
     };
 
     using Triangle = std::array<Vertex, 3>;
@@ -256,7 +256,7 @@ struct Mod3DS {
     std::vector<Animation> mAnimations {};
 
     void save(const std::filesystem::path& path) const {
-        std::cout << std::format("Saving {}...", path.string()) << std::endl;
+        std::println("Saving {}...", path);
         M3DS::BinaryOutFile file { path };
         struct Header {
             std::array<char, 4> magic { 'M', '3', 'D', 'S' };
@@ -277,8 +277,8 @@ struct Mod3DS {
                 Vector3 coords {};
                 Vector2 texCoords {};
                 Vector3 normal {};
-                std::array<std::uint8_t, 4> boneIndices { 0, 0, 0, 0};
-                std::array<float, 4> boneWeights { 0, 0, 0, 0};
+                std::array<std::uint8_t, 4> boneIndices { 0, 0, 0, 0 };
+                std::array<std::uint8_t, 4> boneWeights { 0, 0, 0, 0 };
             };
 
             using ReducedTriangle = std::array<ReducedVertex, 3>;
@@ -330,7 +330,7 @@ struct Mod3DS {
 
                 std::size_t remaining = triangles.size();
 
-                if (remaining == 0) std::cout << "Empty surface?" << std::endl;
+                if (remaining == 0) std::println("Empty surface?");
 
                 while (remaining > 0) {
                     ReducedSurface& surface = boneReducedSurfaces.emplace_back();
@@ -422,7 +422,7 @@ struct Mod3DS {
             }
         }
         const auto surfaceEnd = std::chrono::high_resolution_clock::now();
-        std::cout << "Saving Surface data took " << std::chrono::duration_cast<std::chrono::milliseconds>(surfaceEnd - surfaceStart).count() << "ms" << std::endl;
+        std::println("Saving surface data took {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(surfaceEnd - surfaceStart).count());
 
         const auto t3xStart = std::chrono::high_resolution_clock::now();
         // T3X Data
@@ -448,7 +448,7 @@ struct Mod3DS {
             }
         }
         const auto t3xEnd = std::chrono::high_resolution_clock::now();
-        std::cout << "Saving T3X data took " << std::chrono::duration_cast<std::chrono::milliseconds>(t3xEnd - t3xStart).count() << "ms" << std::endl;
+        std::println("Saving T3X data took {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(t3xEnd - t3xStart).count());
 
         const auto boneStart = std::chrono::high_resolution_clock::now();
         // Bone Data
@@ -526,7 +526,7 @@ struct Mod3DS {
             }
         }
         const auto boneEnd = std::chrono::high_resolution_clock::now();
-        std::cout << "Saving Bone data took " << std::chrono::duration_cast<std::chrono::milliseconds>(boneEnd - boneStart).count() << "ms" << std::endl;
+        std::println("Saving Bone data took {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(boneEnd - boneStart).count());
 
         const auto animStart = std::chrono::high_resolution_clock::now();
         // Animation Data
@@ -566,7 +566,7 @@ struct Mod3DS {
                     });
                 }
 
-                std::cout << std::format("Animation: {} - {}s", animation.name, animationHeader.duration) << std::endl;
+                std::println("Animation: {} - {}s", animation.name, animationHeader.duration);
 
                 if (!file.write(animationHeader) || !file.write(std::span{animation.name}))
                     throw std::runtime_error{"Failed to write to file!"};
@@ -619,7 +619,7 @@ struct Mod3DS {
             }
         }
         const auto animEnd = std::chrono::high_resolution_clock::now();
-        std::cout << "Saving Animation data took " << std::chrono::duration_cast<std::chrono::milliseconds>(animEnd - animStart).count() << "ms" << std::endl;
+        std::println("Saving Animation data took {}ms", std::chrono::duration_cast<std::chrono::milliseconds>(animEnd - animStart).count());
 
         if (!file.seek(0) || !file.write(header))
             throw std::runtime_error{"Failed to write to file!"};

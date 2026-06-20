@@ -19,11 +19,11 @@ int main(const int argc, const char** argv) {
 
     try {
         if (fileName.extension() == ".obj") {
-            std::cout << "Loading Wavefront " << fileName << "...\n";
+            std::println("Loading Wavefront {}...", fileName);
 
             Wavefront{ fileName }.toMod3ds().save(outPath);
         } else if (fileName.extension() == ".glb") {
-            std::cout << "Loading GLB " << fileName << "...\n";
+            std::println("Loading GLB {}...", fileName);
 
             GLTF{ fileName }.toMod3ds().save(outPath);
         } else {
